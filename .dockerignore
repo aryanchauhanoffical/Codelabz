@@ -1,0 +1,49 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+# Rebuilt inside the container; copying the host's node_modules would break
+# native binaries compiled for a different OS/arch.
+node_modules/
+functions/node_modules/
+
+# ── Build output ──────────────────────────────────────────────────────────────
+# Generated fresh by the builder stage; stale local dist/ must not shadow it.
+dist/
+build/
+coverage/
+
+# ── Secrets — NEVER bake into image layers ────────────────────────────────────
+# Pass via --build-arg at build time (see Dockerfile ARG declarations).
+.env
+.env.*
+!.env.sample
+
+# ── Git / IDE ─────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# ── Dev tooling — not needed for the production frontend build ────────────────
+cypress/
+.storybook/
+designs/
+docs/
+testdata/
+
+# ── Cloud Functions — deployed separately via Firebase CLI, not in this image ──
+functions/
+
+# ── Firebase local state ──────────────────────────────────────────────────────
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+database-debug.log
+pubsub-debug.log
+ui-debug.log
+storage-debug.log
+*-debug.log
+
+# ── OS / misc ─────────────────────────────────────────────────────────────────
+.DS_Store
+*.log
+*.lock
