@@ -1,39 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Button, Grid } from "@mui/material";
-import { makeStyles } from "@mui/styles";
-import Avatar from "@mui/material/Avatar";
+import { Typography, Button, Box, Avatar } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useFirebase, useFirestore } from "react-redux-firebase";
 import { getUserProfileData } from "../../../store/actions";
 import { isUserFollower } from "../../../store/actions/profileActions";
 import { addUserFollower } from "../../../store/actions";
 
-const useStyles = makeStyles(() => ({
-  container: {
-    padding: "20px",
-    boxSizing: "border-box"
-  },
-  small: {
-    padding: "2px"
-  },
-  bold: {
-    fontWeight: "600"
-  }
-}));
-
 const User = ({ id, timestamp, size }) => {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const firebase = useFirebase();
   const firestore = useFirestore();
   const [isFollowed, setIsFollowed] = useState(true);
+
+  const isSmall = size === "sm";
+
   useEffect(() => {
     getUserProfileData(id)(firebase, firestore, dispatch);
     return () => {};
   }, [id]);
 
+  // same selector shapes — unchanged
   const profileData = useSelector(({ firebase: { profile } }) => profile);
-
   const user = useSelector(
     ({
       profile: {
@@ -61,73 +48,113 @@ const User = ({ id, timestamp, size }) => {
     await addUserFollower(profileData, user, firestore);
   };
 
-  const getTime = timestamp => {
-    return timestamp.toDate().toDateString();
-  };
+  const getTime = timestamp => timestamp.toDate().toDateString();
 
   const showFollowButton = profileData?.uid !== user?.uid;
 
+  const avatarSize = isSmall ? 28 : 40;
+
   return (
-    <>
-      <Grid
-        item
-        container
-        justifyContent="start"
-        alignItems="start"
-        columnSpacing={1}
-        xs={6}
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 1.25,
+        minWidth: 0 /* lets long names truncate instead of overflowing */
+      }}
+    >
+      {/* ── Avatar ──────────────────────────────────────────────────── */}
+      <Avatar
+        sx={{
+          width: avatarSize,
+          height: avatarSize,
+          flexShrink: 0,
+          fontSize: isSmall ? "0.7rem" : "1rem",
+          bgcolor: "#0293d9"
+        }}
       >
-        <Grid sx={{ height: "100%", width: "auto" }} item>
-          <Avatar
-            sx={{
-              height: size == "sm" ? "24px" : "40px",
-              width: size == "sm" ? "24px" : "40px"
-            }}
-          >
-            {user?.photoURL && user?.photoURL.length > 0 ? (
-              <img src={user?.photoURL} />
-            ) : (
-              user?.displayName[0]
-            )}
-          </Avatar>
-        </Grid>
-        <Grid item sx={{ width: "fit-content" }}>
+        {user?.photoURL && user.photoURL.length > 0 ? (
+          <img
+            src={user.photoURL}
+            alt={user.displayName}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          user?.displayName?.[0]?.toUpperCase()
+        )}
+      </Avatar>
+
+      {/* ── Name / date / follow ────────────────────────────────────── */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 0.25,
+          minWidth: 0
+        }}
+      >
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: isSmall ? "0.8rem" : "0.95rem",
+            lineHeight: 1.3,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          }}
+          data-testId="tutorialpageAuthorName"
+        >
+          {user?.displayName}
+        </Typography>
+
+        {timestamp && (
           <Typography
             sx={{
-              fontSize: size == "sm" ? "14px" : "16px"
+              fontSize: isSmall ? "0.65rem" : "0.75rem",
+              color: "text.secondary",
+              fontWeight: 500,
+              lineHeight: 1.2
             }}
           >
-            <span className={classes.bold} data-testId="tutorialpageAuthorName">
-              {user?.displayName}
-            </span>
+            {getTime(timestamp)}
           </Typography>
-          <Typography
+        )}
+
+        {showFollowButton && (
+          <Button
+            variant="contained"
+            disableElevation
+            onClick={followUser}
+            disabled={isFollowed}
+            size="small"
             sx={{
-              fontSize: size == "sm" ? "10px" : "12px",
-              opacity: "0.5",
-              fontWeight: "600"
+              mt: 0.5,
+              borderRadius: "50px",
+              height: 22,
+              fontSize: "0.7rem",
+              textTransform: "none",
+              px: 1.5,
+              py: 0,
+              minWidth: 0,
+              alignSelf: "flex-start",
+              bgcolor: isFollowed ? "grey.200" : "#03AAFA",
+              color: isFollowed ? "text.secondary" : "#fff",
+              boxShadow: "none",
+              "&:hover": {
+                bgcolor: isFollowed ? "grey.300" : "#0293d9",
+                boxShadow: "none"
+              },
+              "&.Mui-disabled": {
+                bgcolor: "grey.100",
+                color: "text.disabled"
+              }
             }}
           >
-            {timestamp ? getTime(timestamp) : ""}
-          </Typography>
-          {showFollowButton && (
-            <Button
-              variant="contained"
-              onClick={followUser}
-              disabled={isFollowed}
-              sx={{
-                borderRadius: "50px",
-                height: "20px",
-                textTransform: "none",
-                padding: "1px 10px"
-              }}
-            >
-              {isFollowed ? "Following" : "Follow +"}
-            </Button>
-          )}
-        </Grid>
-      </Grid>
-    </>
+            {isFollowed ? "Following" : "Follow +"}
+          </Button>
+        )}
+      </Box>
+    </Box>
   );
 };
 
