@@ -21,6 +21,9 @@ Covers every environment variable and secret the project depends on — what it 
 ### [IMPROVEMENTS.md](./IMPROVEMENTS.md)
 An honest analysis of the most significant gap in the current CI/CD pipeline: tests do not block production deployments. Documents the root cause, the exact code change needed to fix it, and the impact of that fix. Also notes three secondary improvements worth considering.
 
+### [notification-system-design.md](./notification-system-design.md)
+Full design for a scalable notification system — built on top of the existing Firebase stack. Covers the gaps in the current implementation, ER model, all notification types and their priority levels, a complete queue-based delivery architecture, Firestore schema, and a step-by-step example flow from user action to in-app badge and email delivery.
+
 ---
 
 ## Quick Reference
@@ -32,3 +35,4 @@ An honest analysis of the most significant gap in the current CI/CD pipeline: te
 | Understand how deploys work | CICD_PIPELINE.md |
 | Set up the project locally | ENVIRONMENT_AND_SECRETS.md |
 | Understand what could be improved | IMPROVEMENTS.md |
+| Design or extend the notification system | notification-system-design.md |
