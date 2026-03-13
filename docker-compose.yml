@@ -1,30 +1,40 @@
-version: "3.3"
+version: "3.9"
+
+# Production compose file.
+# Builds the multi-stage Docker image and serves the compiled SPA on port 80.
+#
+# Usage:
+#   cp .env.sample .env          # fill in your Firebase values
+#   docker compose up --build
+#
+# Env vars are passed as build-time ARGs (Vite bakes them into the JS bundle).
+# The running nginx container has NO access to the raw credentials — they are
+# already compiled into the static JS at build time.
 
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_APP_FIREBASE_API_KEY:             ${VITE_APP_FIREBASE_API_KEY}
+        VITE_APP_AUTH_DOMAIN:                  ${VITE_APP_AUTH_DOMAIN}
+        VITE_APP_FIREBASE_PROJECT_ID:          ${VITE_APP_FIREBASE_PROJECT_ID}
+        VITE_APP_FIREBASE_MESSAGING_SENDER_ID: ${VITE_APP_FIREBASE_MESSAGING_SENDER_ID}
+        VITE_APP_FIREBASE_APP_ID:              ${VITE_APP_FIREBASE_APP_ID}
+        VITE_APP_FIREBASE_MEASUREMENTID:       ${VITE_APP_FIREBASE_MEASUREMENTID}
+        VITE_APP_DATABASE_URL:                 ${VITE_APP_DATABASE_URL}
+        VITE_APP_FIREBASE_STORAGE_BUCKET:      ${VITE_APP_FIREBASE_STORAGE_BUCKET}
+        VITE_APP_FIREBASE_FCM_VAPID_KEY:       ${VITE_APP_FIREBASE_FCM_VAPID_KEY}
+        VITE_APP_USE_EMULATOR:                 "false"
+    image: codelabz:latest
     ports:
-      - 5173:5173
-    volumes:
-      - .:/app
-    networks:
-      - main
-  emulator:
-    image: spine3/firebase-emulator
-    environment:
-      ENABLE_UI: true
-      GCP_PROJECT: demo-sampark
-    ports:
-      - 5001:5001
-      - 9000:9000
-      - 8080:8080
-      - 8085:8085
-      - 5000:5000
-      - 4000:4000
-    networks:
-      - main
-
-networks:
-  main: {}
+      - "80:80"
+    restart: unless-stopped
+    healthcheck:
+      # wget is available on nginx:alpine; curl is not installed by default
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout:  5s
+      retries:  3
+      start_period: 10s
