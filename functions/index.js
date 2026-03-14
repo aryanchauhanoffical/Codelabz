@@ -15,6 +15,7 @@ const onCreateFunctions = require("./cloud_functions/onCreateFunctions");
 const onWriteFunctions = require("./cloud_functions/onWriteFunctions");
 const onUpdateFunctions = require("./cloud_functions/onUpdateFunctions");
 const pubSubFunctions = require("./cloud_functions/pubSubFunctions");
+const aiSuggestions = require("./cloud_functions/aiSuggestions");
 
 //+++++++++++++++++++++onCall Functions+++++++++++++++++++++++++++++++++
 exports.resendVerificationEmail = functions.https.onCall(
@@ -23,6 +24,14 @@ exports.resendVerificationEmail = functions.https.onCall(
 
 exports.sendPasswordUpdateEmail = functions.https.onCall(
   onCallFunctions.sendPasswordUpdateEmailHandler
+);
+
+exports.generateTutorialSuggestions = functions.https.onCall(
+  aiSuggestions.generateTutorialSuggestionsHandler
+);
+
+exports.recordSuggestionResult = functions.https.onCall(
+  aiSuggestions.recordSuggestionResultHandler
 );
 
 //+++++++++++++++++++++onCreate Functions+++++++++++++++++++++++++++++++

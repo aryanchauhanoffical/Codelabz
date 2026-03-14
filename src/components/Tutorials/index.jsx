@@ -9,6 +9,7 @@ import TutorialHeading from "./subComps/TutorialTitle";
 import EditControls from "./subComps/EditControls";
 import Editor from "../Editor";
 import ImageDrawer from "./subComps/ImageDrawer";
+import AiSuggestionPanel from "./subComps/AiSuggestionPanel";
 import StepsTitle from "./subComps/StepsTitle";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -93,6 +94,7 @@ const ViewTutorial = () => {
   const [mode, setMode] = useState("view");
   const [allowEdit, setAllowEdit] = useState(true);
   const [imageDrawerVisible, setImageDrawerVisible] = useState(false);
+  const [aiPanelVisible, setAiPanelVisible] = useState(false);
   const [addNewStepModalVisible, setAddNewStepModalVisible] = useState(false);
   const [currentStepContent, setCurrentStepContent] = useState(null);
   const [stepsData, setStepData] = useState(null);
@@ -186,6 +188,7 @@ const ViewTutorial = () => {
                 setMode={mode => setMode(mode)}
                 mode={mode}
                 toggleImageDrawer={() => setImageDrawerVisible(true)}
+                toggleAiPanel={() => setAiPanelVisible(true)}
                 tutorial_id={tutorialData.tutorial_id}
                 toggleAddNewStep={() =>
                   setAddNewStepModalVisible(!addNewStepModalVisible)
@@ -305,6 +308,17 @@ const ViewTutorial = () => {
                   imageURLs={tutorialData.imageURLs}
                 />
               )}
+              <AiSuggestionPanel
+                open={aiPanelVisible}
+                onClose={() => setAiPanelVisible(false)}
+                tutorialTitle={tutorialData.title}
+                stepTitle={stepsData[currentStep].title}
+                stepContent={stepsData[currentStep].content}
+                currentContent={currentStepContent}
+                tutorial_id={tutorialData.tutorial_id}
+                step_id={stepsData[currentStep].id}
+                owner={tutorialData.owner}
+              />
               <AddNewStepModal
                 viewModal={addNewStepModalVisible}
                 viewCallback={() =>
