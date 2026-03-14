@@ -2,9 +2,11 @@
 
 1. [CodeLabz](#codelabz)
 2. [Deployment](#deployment)
-3. [Community](#community)
-4. [Contribute](#contribute)
-5. [FAQs (Frequently Asked Questions)](#faqs)
+3. [Local Development](#local-development)
+4. [Useful Commands](#useful-commands)
+5. [Community](#community)
+6. [Contribute](#contribute)
+7. [FAQs (Frequently Asked Questions)](#faqs)
 
 # CodeLabz
 
@@ -13,6 +15,83 @@
 # Deployment
 
 You can see the app live at [https://dev.codelabz.io/](https://dev.codelabz.io/)
+
+# Local Development
+
+### 1. Install Dependencies
+
+```bash
+npm install --legacy-peer-deps
+```
+
+> The `--legacy-peer-deps` flag is required because the project contains peer dependency conflicts.
+
+### 2. Configure Environment Variables
+
+```bash
+cp .env.sample .env
+```
+
+Then fill in your Firebase credentials in `.env`:
+
+```
+VITE_APP_FIREBASE_API_KEY=...
+VITE_APP_AUTH_DOMAIN=...
+VITE_APP_FIREBASE_PROJECT_ID=...
+VITE_APP_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_APP_FIREBASE_APP_ID=...
+VITE_APP_FIREBASE_MEASUREMENTID=...
+VITE_APP_DATABASE_URL=...
+VITE_APP_FIREBASE_STORAGE_BUCKET=...
+VITE_APP_FIREBASE_FCM_VAPID_KEY=...
+VITE_APP_USE_EMULATOR=false
+```
+
+You can get these values from your [Firebase project console](https://console.firebase.google.com/).
+
+### 3. Run Development Server
+
+```bash
+npm run dev
+```
+
+Application runs at **http://localhost:5173**
+
+### Running with Firebase Emulators (recommended for local dev)
+
+This lets you run the full app locally without needing real Firebase credentials.
+
+**Terminal 1** — start emulators with test data:
+
+```bash
+npm run emulator-import
+```
+
+**Terminal 2** — start the frontend pointed at the emulators:
+
+```bash
+VITE_APP_USE_EMULATOR=true npm run dev
+```
+
+> Make sure to start the emulators **before** the frontend, otherwise login/signup will not work.
+
+---
+
+# Useful Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server with hot reload |
+| `npm run build` | Create optimized production build |
+| `npm run preview` | Preview the production build locally |
+| `npm run emulator` | Start Firebase emulators |
+| `npm run emulator-import` | Start emulators and load test data |
+| `npm run storybook` | Start Storybook component explorer on :6006 |
+| `npm run cy:open` | Open Cypress E2E test runner |
+| `npm run lint` | Run ESLint on `src/` |
+| `npm run format` | Run Prettier formatter |
+
+---
 
 # Community
 

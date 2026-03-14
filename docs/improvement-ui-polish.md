@@ -1,33 +1,41 @@
-# UI Polish — Feed Cards & Tutorial Page
+# UI Improvements — Feed Cards & Tutorial Page
 
-## Summary
+This document explains the UX problems that were identified in the feed card components
+and tutorial detail page, the solutions applied, and their impact on users.
 
-This pass improves real user-facing UX issues in the feed card components and tutorial detail page.
-No business logic was modified — only presentation layer.
+No business logic was modified. All changes are in the presentation layer only.
 
 ---
 
-## 1. Problem: Tags mixed with action icons (Feed Cards)
+## 1. Feed Card Layout — Tags Mixed with Action Icons
 
-**Before**
+**Problem**
 
-The bottom row of every feed card crammed tags, read time, likes, comment, share, save, and more icons
-into a single `CardActions` row. On any card with 2+ tags the row overflowed and the action icons were
-pushed off screen or wrapped chaotically.
-
-```
-[ HTML ]  [ CSS ]  10 min  ♥ 👍  💬  📤  🔖  ⋮
-```
-
-**After**
-
-Two clearly separated rows with a `Divider` between them:
+Tags, read time, and action icons (like, comment, share, save, more) were all rendered
+in a single `CardActions` row. On cards with 2 or more tags the row overflowed and
+action icons were pushed off-screen or wrapped unpredictably, especially on smaller screens.
 
 ```
-Row 1 (tags):    [ HTML ]  [ CSS ]           10 min read
-──────────────────────────────────────────────────────
-Row 2 (actions): ♥ 👍                   💬  📤  🔖  ⋮
+Before:
+[ HTML ]  [ CSS ]  10 min  👍  💬  📤  🔖  ⋮   ← all in one row, breaks on mobile
 ```
+
+**Solution**
+
+Separated into two clearly distinct rows with a `Divider` between them:
+
+```
+After:
+Row 1 — tags:     [ HTML ]  [ CSS ]              10 min read
+         ─────────────────────────────────────────────────────
+Row 2 — actions:  👍                        💬  📤  🔖  ⋮
+```
+
+**Impact**
+
+- Tags are readable at a glance without competing with icon buttons
+- Action icons are always reachable regardless of how many tags a tutorial has
+- Layout no longer breaks on small screens
 
 **Files changed**
 - `src/components/Card/CardWithPicture.jsx`
@@ -35,20 +43,28 @@ Row 2 (actions): ♥ 👍                   💬  📤  🔖  ⋮
 
 ---
 
-## 2. Problem: No text truncation on cards
+## 2. Feed Card Layout — No Text Truncation
 
-**Before**
+**Problem**
 
-Title and description expanded to full length. A card with a long title pushed other cards down
-and made the feed height inconsistent and hard to scan.
+Tutorial titles and descriptions expanded to their full length inside feed cards.
+A tutorial with a long title pushed other cards down, making the feed height inconsistent
+and hard to scan. Users had to read varying amounts of text per card to find what they wanted.
 
-**After**
+**Solution**
 
-- Title: max 2 lines (`WebkitLineClamp: 2`)
-- Description: max 3 lines (`WebkitLineClamp: 3`)
+Applied `WebkitLineClamp` to clamp content at a maximum number of lines:
 
-All feed cards now have uniform, predictable height. Users can scan the feed without jarring
-layout shifts between short and long tutorials.
+- Title: maximum 2 lines
+- Description: maximum 3 lines
+
+Overflow is hidden with an ellipsis.
+
+**Impact**
+
+- All feed cards now have consistent, predictable height
+- Users can scan the feed without layout shifts between short and long tutorials
+- Reduces cognitive load — users see the same amount of information per card
 
 **Files changed**
 - `src/components/Card/CardWithPicture.jsx`
@@ -56,20 +72,26 @@ layout shifts between short and long tutorials.
 
 ---
 
-## 3. Problem: Card hover gives no affordance
+## 3. Feed Card — No Click Affordance
 
-**Before**
+**Problem**
 
-Cards had no hover state. There was no visual signal that the card was clickable.
+Cards had no hover state. There was no visual signal that the entire card was clickable,
+which can cause users to miss the interaction or feel uncertain.
 
-**After**
+**Solution**
 
-Cards animate to a raised shadow on hover:
+Added a shadow elevation transition on hover:
 
 ```jsx
-"&:hover": { boxShadow: 4 },
-transition: "box-shadow 0.2s ease"
+transition: "box-shadow 0.2s ease",
+"&:hover": { boxShadow: 4 }
 ```
+
+**Impact**
+
+- Clear affordance that the card is interactive
+- Smooth animation avoids a jarring visual jump
 
 **Files changed**
 - `src/components/Card/CardWithPicture.jsx`
@@ -77,60 +99,92 @@ transition: "box-shadow 0.2s ease"
 
 ---
 
-## 4. Problem: Tags rendered inside title Typography
+## 4. Tutorial Page — Tags Inside Title Typography
 
-**Before** (`PostDetails.jsx`)
+**Problem**
 
-Tags were `<Chip>` elements placed *inside* the title `<Typography>`. This caused chips to render
-inline mid-sentence, breaking the text flow and collapsing with long titles.
+In `PostDetails.jsx`, tag chips were rendered as inline elements *inside* the title `<Typography>`.
+This broke the text flow and caused layout issues when a tutorial had multiple tags,
+pushing chips mid-sentence or onto the same line as the title text.
 
 ```jsx
+// Before — chips embedded inside title text
 <Typography>
   {details?.title}
   {details?.tags?.map(tag => <Chip label={tag} />)}
 </Typography>
 ```
 
-**After**
+**Solution**
 
-Title is its own block. Tags are in a dedicated `flexWrap` row directly below:
+Separated the title and tags into two independent blocks:
 
 ```jsx
+// After — title and tags as separate rows
 <Typography>{details?.title}</Typography>
 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.75 }}>
   {details?.tags?.map(tag => <Chip key={tag} size="small" label={tag} />)}
 </Box>
 ```
 
+**Impact**
+
+- Title always renders cleanly as a full line
+- Tags sit in their own row directly below, always readable regardless of title length
+- Works correctly with any number of tags
+
 **Files changed**
 - `src/components/TutorialPage/components/PostDetails.jsx`
 
 ---
 
-## 5. Problem: Follow button emphasis is backwards
+## 5. Tutorial Page — Follow Button Emphasis Backwards
 
-**Before** (`UserDetails.jsx`)
+**Problem**
 
-The Follow button used `variant="contained"` (bold, filled, high-emphasis) even when the user
-was already following — the state where no action is needed. A disabled filled button implies
-something is broken, not "all good".
+The Follow button used `variant="contained"` (bold, filled, high-emphasis style) even when
+the user was already following the author. A disabled filled button implies something is broken,
+not that the action is already complete. The button that needs user attention ("Follow +")
+looked identical to the state where no action was needed ("Following").
 
-**After**
+**Solution**
 
-| State | Variant | Meaning |
-|-------|---------|---------|
-| Not following | `contained` | Strong call to action — "click me" |
-| Already following | `outlined` | Low emphasis — status indicator |
+Follow button variant now reflects the actual state:
+
+| User state | Variant | Reasoning |
+|------------|---------|-----------|
+| Not following | `contained` | High emphasis — calls user to action |
+| Already following | `outlined` | Low emphasis — status indicator only |
+
+**Impact**
+
+- Users immediately understand which authors they are already following
+- The button that needs attention stands out; the completed state recedes
+- Consistent with standard UI convention (filled = primary action, outlined = secondary/status)
 
 **Files changed**
 - `src/components/TutorialPage/components/UserDetails.jsx`
 
 ---
 
-## 6. Removed `makeStyles` from Card components
+## 6. Removed Deprecated `makeStyles` from Card Components
 
-Both card components used the legacy `@mui/styles` `makeStyles` API (MUI v4 pattern).
-Replaced with `sx` props throughout — no more style class mapping, styles colocated with markup.
+**Problem**
+
+Both card components used `makeStyles` from `@mui/styles`, which is the MUI v4 styling API.
+MUI v5 recommends the `sx` prop. Using `makeStyles` in a MUI v5 project adds an extra dependency
+and separates styles from the markup that uses them, making the code harder to read and maintain.
+
+**Solution**
+
+Replaced all `makeStyles` class mappings with `sx` props colocated directly on each component.
+Removed the `@mui/styles` import from both card files.
+
+**Impact**
+
+- Styles are colocated with markup — easier to read and modify
+- Removes dependency on the legacy `@mui/styles` package in these files
+- Consistent with how the rest of the MUI v5 components in the project are styled
 
 **Files changed**
 - `src/components/Card/CardWithPicture.jsx`
@@ -138,11 +192,26 @@ Replaced with `sx` props throughout — no more style class mapping, styles colo
 
 ---
 
-## Files Changed
+## Note on Prettier / Husky
 
-| File | What Changed |
-|------|-------------|
-| `src/components/Card/CardWithPicture.jsx` | Tags row separated, text clamp, hover shadow, removed makeStyles |
-| `src/components/Card/CardWithoutPicture.jsx` | Tags row separated, text clamp, hover shadow, removed makeStyles |
-| `src/components/TutorialPage/components/PostDetails.jsx` | Tags moved out of title Typography into dedicated row |
-| `src/components/TutorialPage/components/UserDetails.jsx` | Follow button variant corrected (outlined when following) |
+The project runs `npm run format` (Prettier) automatically on every `git commit` via Husky.
+Prettier config is in `.prettierrc`. If any of the changed files look reformatted after a commit,
+that is the pre-commit hook applying the project's formatting rules — not a revert of the changes.
+
+The hook is defined in `.husky/pre-commit`:
+
+```sh
+npm run lint
+npm run format
+```
+
+---
+
+## Files Changed Summary
+
+| File | Changes |
+|------|---------|
+| `src/components/Card/CardWithPicture.jsx` | Tags separated, text clamped, hover shadow, removed makeStyles |
+| `src/components/Card/CardWithoutPicture.jsx` | Tags separated, text clamped, hover shadow, removed makeStyles |
+| `src/components/TutorialPage/components/PostDetails.jsx` | Tags moved out of title into dedicated row |
+| `src/components/TutorialPage/components/UserDetails.jsx` | Follow button variant corrected |
