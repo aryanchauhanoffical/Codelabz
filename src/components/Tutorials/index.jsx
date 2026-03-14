@@ -22,7 +22,7 @@ import Spinner from "../../helpers/spinner";
 import AddNewStepModal from "./subComps/AddNewStep";
 import QuillEditor from "../Editor/QuillEditor";
 import HtmlTextRenderer from "./subComps/HtmlTextRenderer";
-import { Collapse, Button } from "@mui/material";
+import { Box, Collapse, Button } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { makeStyles } from "@mui/styles";
 
@@ -266,9 +266,32 @@ const ViewTutorial = () => {
                 {!isDesktop && stepPanelVisible ? null : (
                   <>
                     {mode === "view" && (
-                      <div data-testId="tutorial-content">
+                      <Box
+                        data-testId="tutorial-content"
+                        sx={{
+                          lineHeight: 1.7,
+                          "& img": {
+                            display: "block",
+                            maxWidth: "100%",
+                            height: "auto",
+                            borderRadius: "8px",
+                            my: 1.5,
+                            boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
+                          },
+                          "& video": {
+                            display: "block",
+                            maxWidth: "100%",
+                            height: "auto",
+                            borderRadius: "8px",
+                            my: 1.5,
+                            bgcolor: "#000",
+                            outline: "none"
+                          },
+                          "& p": { mt: 0, mb: 1.25 }
+                        }}
+                      >
                         <HtmlTextRenderer html={currentStepContent} />
-                      </div>
+                      </Box>
                     )}
                     {mode === "edit" && (
                       <>
