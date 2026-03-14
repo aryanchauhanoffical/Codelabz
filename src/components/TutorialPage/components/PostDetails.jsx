@@ -67,20 +67,24 @@ const PostDetails = ({ details }) => {
         <Card className={classes.container}>
           <Grid>
             <Box>
-              <Grid container columnSpacing={2} alignItems="center">
-                <Grid item>
-                  <Typography sx={{ fontWeight: "700", fontSize: "1.2rem" }}>
-                    {details?.title}
+              <Box>
+                <Typography sx={{ fontWeight: "700", fontSize: "1.2rem", lineHeight: 1.3 }}>
+                  {details?.title}
+                </Typography>
+                {details?.tags?.length > 0 && (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.75 }}>
                     {details?.tags?.map(tag => (
                       <Chip
+                        key={tag}
                         label={tag}
                         variant="outlined"
-                        className={classes.chip}
+                        size="small"
+                        sx={{ height: 22, fontSize: "0.72rem" }}
                       />
                     ))}
-                  </Typography>
-                </Grid>
-              </Grid>
+                  </Box>
+                )}
+              </Box>
             </Box>
             <Box sx={{ width: "100%", marginTop: "10px" }}>
               <Grid container justifyContent="space-between" alignItems="end">

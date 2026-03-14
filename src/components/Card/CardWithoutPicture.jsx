@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { makeStyles } from "@mui/styles";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import { red } from "@mui/material/colors";
 import Chip from "@mui/material/Chip";
+import { red } from "@mui/material/colors";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import ChatOutlinedIcon from "@mui/icons-material/ChatOutlined";
 import TurnedInNotOutlinedIcon from "@mui/icons-material/TurnedInNotOutlined";
@@ -19,52 +20,7 @@ import { useFirebase, useFirestore } from "react-redux-firebase";
 import { getUserProfileData } from "../../store/actions";
 import TutorialLikesDislikes from "../ui-helpers/TutorialLikesDislikes";
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    margin: "0.5rem",
-    borderRadius: "10px",
-    boxSizing: "border-box",
-    [theme.breakpoints.down("md")]: {
-      width: "auto"
-    },
-    [theme.breakpoints.down("xs")]: {
-      width: "auto"
-    }
-  },
-  grow: {
-    flexGrow: 1
-  },
-  margin: {
-    marginRight: "5px"
-  },
-  expandOpen: {
-    transform: "rotate(180deg)"
-  },
-  avatar: {
-    backgroundColor: red[500]
-  },
-  inline: {
-    fontWeight: 600
-  },
-  contentPadding: {
-    padding: "0 16px"
-  },
-  icon: {
-    padding: "5px"
-  },
-  time: {
-    lineHeight: "1"
-  },
-  small: {
-    padding: "4px"
-  },
-  settings: {
-    flexWrap: "wrap"
-  }
-}));
-
 export default function CardWithoutPicture({ tutorial }) {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const firebase = useFirebase();
   const firestore = useFirestore();
@@ -86,24 +42,35 @@ export default function CardWithoutPicture({ tutorial }) {
   };
 
   return (
-    <Card className={classes.root} data-testId="codelabz">
+    <Card
+      sx={{
+        margin: "0.5rem",
+        borderRadius: "10px",
+        transition: "box-shadow 0.2s ease",
+        "&:hover": { boxShadow: 4 }
+      }}
+      data-testId="codelabz"
+    >
       <CardHeader
         avatar={
-          <Avatar className={classes.avatar}>
+          <Avatar sx={{ bgcolor: red[500] }}>
             {user?.photoURL && user?.photoURL.length > 0 ? (
-              <img src={user?.photoURL} />
+              <img
+                src={user?.photoURL}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
             ) : (
-              user?.displayName[0]
+              user?.displayName?.[0]
             )}
           </Avatar>
         }
         title={
-          <React.Fragment>
+          <>
             <Typography
               component="span"
-              variant="h7"
-              className={classes.inline}
-              color="textPrimary"
+              variant="body2"
+              sx={{ fontWeight: 600 }}
+              color="text.primary"
               data-testId="UserName"
             >
               {user?.displayName}
@@ -113,72 +80,102 @@ export default function CardWithoutPicture({ tutorial }) {
                 {" for "}
                 <Typography
                   component="span"
-                  variant="h7"
-                  className={classes.inline}
-                  color="textPrimary"
+                  variant="body2"
+                  sx={{ fontWeight: 600 }}
+                  color="text.primary"
                   data-testId="UserOrgName"
                 >
                   {tutorial?.owner}
                 </Typography>
               </>
             )}
-          </React.Fragment>
+          </>
         }
         subheader={tutorial?.createdAt ? getTime(tutorial?.createdAt) : ""}
       />
+
       <Link to={`/tutorial/${tutorial?.tutorial_id}`}>
-        <CardContent
-          className={classes.contentPadding}
-          data-testId="codelabzDetails"
-        >
-          <Typography variant="h5" color="text.primary" data-testId="Title">
+        <CardContent sx={{ pt: 0, pb: 1 }} data-testId="codelabzDetails">
+          <Typography
+            variant="h6"
+            color="text.primary"
+            data-testId="Title"
+            sx={{
+              fontWeight: 700,
+              fontSize: "1rem",
+              lineHeight: 1.4,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden"
+            }}
+          >
             {tutorial?.title}
           </Typography>
           <Typography
             variant="body2"
-            color="textSecondary"
+            color="text.secondary"
             component="p"
-            paragraph
             data-testId="Description"
+            sx={{
+              mt: 0.5,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden"
+            }}
           >
             {tutorial?.summary}
           </Typography>
         </CardContent>
       </Link>
-      <CardActions className={classes.settings} disableSpacing>
-        {tutorial?.tut_tags &&
-          tutorial?.tut_tags.map((tag, index) => (
+
+      {/* Tags + read time — own row, separated from action icons */}
+      {tutorial?.tut_tags?.length > 0 && (
+        <Box
+          sx={{
+            px: 2,
+            pb: 1.5,
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 0.5
+          }}
+        >
+          {tutorial.tut_tags.map((tag, index) => (
             <Chip
-              label={tag}
               key={index}
+              label={tag}
               component="a"
               href="#chip"
               clickable
               variant="outlined"
-              className={classes.margin}
+              size="small"
             />
           ))}
-        <Typography
-          variant="overline"
-          display="block"
-          className={classes.time}
-          data-testId="Time"
-        >
-          {"10 min"}
-        </Typography>
-        <div className={classes.grow} />
+          <Box sx={{ flexGrow: 1 }} />
+          <Typography variant="caption" color="text.secondary">
+            10 min read
+          </Typography>
+        </Box>
+      )}
+
+      <Divider />
+
+      <CardActions disableSpacing sx={{ px: 1, py: 0.5 }}>
         <TutorialLikesDislikes tutorial_id={tutorial?.tutorial_id} />
-        <IconButton aria-label="share" data-testId="CommentIcon">
-          <ChatOutlinedIcon />
+        <Box sx={{ flexGrow: 1 }} />
+        <IconButton size="small" aria-label="comment" data-testId="CommentIcon">
+          <ChatOutlinedIcon fontSize="small" />
         </IconButton>
-        <IconButton aria-label="add to favorites" data-testId="ShareIcon">
-          <ShareOutlinedIcon />
+        <IconButton size="small" aria-label="share" data-testId="ShareIcon">
+          <ShareOutlinedIcon fontSize="small" />
         </IconButton>
-        <IconButton aria-label="share" data-testId="NotifIcon">
-          <TurnedInNotOutlinedIcon />
+        <IconButton size="small" aria-label="save" data-testId="NotifIcon">
+          <TurnedInNotOutlinedIcon fontSize="small" />
         </IconButton>
-        <IconButton aria-label="share" data-testId="MoreIcon">
-          <MoreVertOutlinedIcon />
+        <IconButton size="small" aria-label="more" data-testId="MoreIcon">
+          <MoreVertOutlinedIcon fontSize="small" />
         </IconButton>
       </CardActions>
     </Card>
