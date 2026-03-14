@@ -112,14 +112,17 @@ const User = ({ id, timestamp, size }) => {
           </Typography>
           {showFollowButton && (
             <Button
-              variant="contained"
+              variant={isFollowed ? "outlined" : "contained"}
               onClick={followUser}
               disabled={isFollowed}
+              size="small"
               sx={{
                 borderRadius: "50px",
-                height: "20px",
+                height: "22px",
                 textTransform: "none",
-                padding: "1px 10px"
+                padding: "1px 10px",
+                fontSize: "0.72rem",
+                mt: 0.5
               }}
             >
               {isFollowed ? "Following" : "Follow +"}
