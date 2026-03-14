@@ -499,6 +499,178 @@ export const uploadTutorialImages =
 export const clearTutorialImagesReducer = () => dispatch =>
   dispatch({ type: actions.CLEAR_TUTORIAL_IMAGES_STATE });
 
+// Derives media type from MIME type string.
+// GIFs are distinguished from generic images so they can be embedded differently.
+const getMediaType = mimeType => {
+  if (mimeType === "image/gif") return "gif";
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType.startsWith("video/")) return "video";
+  return "image";
+};
+
+// Captures the first frame of a video File and uploads it to Firebase Storage.
+// Returns the thumbnail download URL, or null if generation fails.
+const uploadVideoThumbnail = async (firebase, storagePath, file) => {
+  return new Promise(resolve => {
+    const video = document.createElement("video");
+    const canvas = document.createElement("canvas");
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    video.src = URL.createObjectURL(file);
+
+    video.onloadeddata = async () => {
+      try {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        URL.revokeObjectURL(video.src);
+
+        canvas.toBlob(async blob => {
+          if (!blob) return resolve(null);
+          try {
+            const thumbName = file.name.replace(/\.[^.]+$/, "_thumb.jpg");
+            const thumbRef = firebase
+              .storage()
+              .ref(`${storagePath}/${thumbName}`);
+            await thumbRef.put(blob, { contentType: "image/jpeg" });
+            const thumbUrl = await thumbRef.getDownloadURL();
+            resolve(thumbUrl);
+          } catch {
+            resolve(null);
+          }
+        }, "image/jpeg", 0.7);
+      } catch {
+        URL.revokeObjectURL(video.src);
+        resolve(null);
+      }
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      resolve(null);
+    };
+  });
+};
+
+// Upload images, videos, and GIFs.
+// Stores rich metadata in the `mediaFiles` array on the tutorial document.
+// Images are also written to `imageURLs` for backward compatibility.
+export const uploadTutorialMedia =
+  (owner, tutorial_id, files) => async (firebase, firestore, dispatch) => {
+    try {
+      dispatch({ type: actions.TUTORIAL_MEDIA_UPLOAD_START });
+      const type = await checkUserOrOrgHandle(owner)(firebase, firestore);
+      const storagePath = `tutorials/${type}/${owner}/${tutorial_id}`;
+
+      for (const file of Array.from(files)) {
+        const mediaType = getMediaType(file.type);
+        const ref = firebase.storage().ref(`${storagePath}/${file.name}`);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+
+        let thumbnailUrl = null;
+        if (mediaType === "video") {
+          thumbnailUrl = await uploadVideoThumbnail(
+            firebase,
+            storagePath,
+            file
+          );
+        }
+
+        const mediaEntry = {
+          name: file.name,
+          url,
+          mediaType,
+          mimeType: file.type,
+          size: file.size,
+          thumbnailUrl,
+          uploadedAt: new Date().toISOString()
+        };
+
+        const updatePayload = {
+          mediaFiles: firebase.firestore.FieldValue.arrayUnion(mediaEntry)
+        };
+
+        // Keep imageURLs in sync for non-video media (backward compat)
+        if (mediaType !== "video") {
+          updatePayload.imageURLs = firebase.firestore.FieldValue.arrayUnion({
+            name: file.name,
+            url
+          });
+        }
+
+        await firestore
+          .collection("tutorials")
+          .doc(tutorial_id)
+          .update(updatePayload);
+      }
+
+      await getCurrentTutorialData(owner, tutorial_id)(
+        firebase,
+        firestore,
+        dispatch
+      );
+
+      dispatch({ type: actions.TUTORIAL_MEDIA_UPLOAD_SUCCESS });
+    } catch (e) {
+      dispatch({ type: actions.TUTORIAL_MEDIA_UPLOAD_FAIL, payload: e.message });
+    }
+  };
+
+// Delete a single media file from Storage and remove its entry from `mediaFiles`.
+export const deleteTutorialMedia =
+  (owner, tutorial_id, mediaEntry) => async (firebase, firestore, dispatch) => {
+    try {
+      dispatch({ type: actions.TUTORIAL_MEDIA_DELETE_START });
+      const type = await checkUserOrOrgHandle(owner)(firebase, firestore);
+      const storagePath = `tutorials/${type}/${owner}/${tutorial_id}`;
+
+      // Delete main file
+      await firebase
+        .storage()
+        .ref(`${storagePath}/${mediaEntry.name}`)
+        .delete();
+
+      // Delete thumbnail if it exists
+      if (mediaEntry.thumbnailUrl) {
+        const thumbName = mediaEntry.name.replace(/\.[^.]+$/, "_thumb.jpg");
+        try {
+          await firebase
+            .storage()
+            .ref(`${storagePath}/${thumbName}`)
+            .delete();
+        } catch {
+          // thumbnail may not exist — ignore
+        }
+      }
+
+      await firestore
+        .collection("tutorials")
+        .doc(tutorial_id)
+        .update({
+          mediaFiles: firebase.firestore.FieldValue.arrayRemove(mediaEntry),
+          // Also clean from imageURLs if it was synced there
+          ...(mediaEntry.mediaType !== "video" && {
+            imageURLs: firebase.firestore.FieldValue.arrayRemove({
+              name: mediaEntry.name,
+              url: mediaEntry.url
+            })
+          })
+        });
+
+      await getCurrentTutorialData(owner, tutorial_id)(
+        firebase,
+        firestore,
+        dispatch
+      );
+
+      dispatch({ type: actions.TUTORIAL_MEDIA_DELETE_SUCCESS });
+    } catch (e) {
+      dispatch({ type: actions.TUTORIAL_MEDIA_DELETE_FAIL, payload: e.message });
+    }
+  };
+
 export const remoteTutorialImages =
   (owner, tutorial_id, name, url) => async (firebase, firestore, dispatch) => {
     try {

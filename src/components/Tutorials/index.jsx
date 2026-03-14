@@ -8,7 +8,7 @@ import ControlButtons from "./subComps/ControlButtons";
 import TutorialHeading from "./subComps/TutorialTitle";
 import EditControls from "./subComps/EditControls";
 import Editor from "../Editor";
-import ImageDrawer from "./subComps/ImageDrawer";
+import MediaDrawer from "./subComps/MediaDrawer";
 import StepsTitle from "./subComps/StepsTitle";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -297,11 +297,12 @@ const ViewTutorial = () => {
                 )}
               </Grid>
               {imageDrawerVisible && (
-                <ImageDrawer
+                <MediaDrawer
                   visible={imageDrawerVisible}
                   onClose={() => setImageDrawerVisible(false)}
                   owner={tutorialData.owner}
                   tutorial_id={tutorialData.tutorial_id}
+                  mediaFiles={tutorialData.mediaFiles}
                   imageURLs={tutorialData.imageURLs}
                 />
               )}
