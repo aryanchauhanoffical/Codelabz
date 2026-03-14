@@ -13,6 +13,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddIcon from "@mui/icons-material/Add";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
 import FormatPaintIcon from "@mui/icons-material/FormatPaint";
 import UserList from "../../Editor/UserList";
@@ -31,6 +32,7 @@ const EditControls = ({
   noteID,
   mode,
   toggleImageDrawer,
+  toggleAiPanel,
   tutorial_id,
   toggleAddNewStep,
   visibility,
@@ -141,6 +143,22 @@ const EditControls = ({
           startIcon={<InsertDriveFileIcon />}
         >
           Add images
+        </Button>
+        <Button
+          className="ml-24"
+          onClick={() => toggleAiPanel()}
+          startIcon={<AutoAwesomeIcon />}
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+            textTransform: "none",
+            fontWeight: 600,
+            "&:hover": {
+              background: "linear-gradient(135deg, #5a6fd6 0%, #6a4292 100%)"
+            }
+          }}
+        >
+          AI Suggestions
         </Button>
 
         <Button
