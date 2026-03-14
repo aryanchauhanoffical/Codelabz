@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    // ── Target & output ─────────────────────────────────────────────────────
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "useDefineForClassFields": true,
+
+    // ── Module resolution ────────────────────────────────────────────────────
+    // "bundler" matches how Vite resolves imports — no need to write
+    // extensions, index files work as expected, etc.
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+
+    // ── TypeScript + JS interop ──────────────────────────────────────────────
+    // allowJs: existing .jsx files are visible to the type checker without
+    // being converted. checkJs: false keeps them warning-free.
+    "allowJs": true,
+    "checkJs": false,
+
+    // Required by "moduleResolution: bundler" when allowImportingTsExtensions
+    // is true. Also required because Vite (not tsc) does the actual emit.
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+
+    // ── JSX ─────────────────────────────────────────────────────────────────
+    "jsx": "react-jsx",
+
+    // ── Strict mode ─────────────────────────────────────────────────────────
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
+
+    // ── Skip checking .d.ts files in node_modules ────────────────────────────
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "cypress"]
+}
